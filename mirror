@@ -1,0 +1,58 @@
+#!/bin/bash
+#cleanup()
+#{
+#    kill -TERM $!
+#    exit 0
+#}
+#trap cleanup INT TERM
+
+
+#TODO 
+# - add check for invalid optarg
+# - check ex regexp exclude
+
+usage() {
+    cat <<EOF
+Usage: $0 -a|-m
+EOF
+    exit 0
+}
+
+
+scope=""
+while getopts ":am" opt; do
+    case $opt in
+        a  ) [ -n "$scope" ] && usage || scope="allhome" ;;
+        m  ) [ -n "$scope" ] && usage || scope="music" ;;
+        # w  ) wait=true ;;
+        \? ) echo "$usage" exit 1 ;;
+    esac
+done
+
+
+case $scope in
+
+    allhome)
+        rsync --exclude-from /home/fredericb/exclude_mirror.txt  \
+            -avz  /home/fredericb /mnt/backhome/ --delete-after
+        ;;
+
+    music)
+        rsync -r /home/fredericb/Music/ /home/fredericb/externalmedia/music/ \
+            --delete-after
+        ;;
+    *) echo "$scope" && usage ;;
+esac
+
+# wait=false
+# --no-perms --no-owner --no-group \
+# ex='\.cache|\.antigen/*|\.cargo|\.emacs\.d|\.gerbil|\.julia|\.opam|\.rustup'
+#if [ "$wait" = true ]; then
+#    inotifywait --exclude $ex \
+#        -r -e modify,create,delete, \
+#        /home/fredericb
+#    rsync --exclude $ex \
+#        -avz --no-perms --no-owner --no-group \
+#        /home/fredericb /mnt/hdd2
+#else
+
